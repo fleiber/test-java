@@ -1,6 +1,8 @@
 package fleiber.presents
 
 import com.google.common.collect.*
+import fleiber.presents.Adult.*
+import fleiber.presents.Child.*
 import java.util.*
 import kotlin.math.ceil
 import kotlin.random.Random
@@ -31,8 +33,36 @@ fun main() {
 }
 
 
-private data class GiverReceiver<P : Person>(val giver: Adult, val receiver: P, val proba: Double)
-private val EXEMPTED_FROM_CHILDREN_GIFTS = setOf(Adult.BRUNO, Adult.NELLY)
+private val EXEMPTED_FROM_CHILDREN_GIFTS = setOf(BRUNO, NELLY)
+
+val ASSIGNMENTS_2018 = mapOf(
+        DENIS to listOf<Person>(LOUIS_MARIE, CYPRIEN, AUGUSTIN),
+        CATHERINE to listOf(EMMANUEL, CLAUDE, /*JOSEPH*/),
+        FRANCOIS to listOf(HELENE, PIERRE, ANTOINE),
+        JIE to listOf(CATHERINE, TIMOTHEE),
+        EMMANUEL to listOf(DENIS, BARNABE, ETIENNE),
+        HELENE to listOf(JIE, DANAELLE, GREGOIRE),
+        LOUIS_MARIE to listOf(NELLY, JEANNE, EMMA),
+        ANNE_EMMANUEL to listOf(BRUNO, AMELIE),
+        BRUNO to listOf(FRANCOIS),
+        NELLY to listOf(ANNE_EMMANUEL))
+val ASSIGNMENTS_2019 = mapOf(
+        DENIS to listOf<Person>(EMMANUEL, BARNABE, GREGOIRE),
+        CATHERINE to listOf(ANNE_EMMANUEL, AMELIE, TIMOTHEE),
+        FRANCOIS to listOf(BRUNO, CYPRIEN, AUGUSTIN),
+        JIE to listOf(HELENE, ANTOINE),
+        EMMANUEL to listOf(CATHERINE, ETIENNE),
+        HELENE to listOf(LOUIS_MARIE, CLAUDE, EMMA),
+        LOUIS_MARIE to listOf(JIE, JEANNE, PIERRE),
+        ANNE_EMMANUEL to listOf(NELLY, DANAELLE),
+        BRUNO to listOf(DENIS),
+        NELLY to listOf(FRANCOIS))
+
+private data class GiverReceiver<P : Person>(val giver: Adult, val receiver: P) {
+    // start with uniform probability, then reducing the probability for past giver/receiver pairs
+    // could be tuned in various ways, like girls having a higher proba of offering to girl, etc
+    val proba = Random.nextDouble() + (if (receiver in ASSIGNMENTS_2019[giver]!!) -0.3 else 0.0) + (if (receiver in ASSIGNMENTS_2018[giver]!!) -0.15 else 0.0)
+}
 
 /**
  * Computes 1-1 giver-receiver relations between adults.
@@ -47,9 +77,7 @@ private fun computeAdultToAdultAssignments(): BiMap<Adult, Adult> {
         for (giver in Adult.values()) {
             for (receiver in Adult.values()) {
                 if (giver !== receiver && !giver.isMarriedTo(receiver)) {    // only forbidden: offer to myself or my husband/wife
-                    // uniform probability, could be amended (like girls having a higher proba of offering to girl, etc)
-                    val proba = Random.nextDouble()
-                    pairs.add(GiverReceiver(giver, receiver, proba))
+                    pairs += GiverReceiver(giver, receiver)
                 }
             }
         }
@@ -79,11 +107,7 @@ private fun computeAdultToChildAssignments(): SetMultimap<Adult, Child> {
             if (giver in EXEMPTED_FROM_CHILDREN_GIFTS) continue
             for (receiver in Child.values()) {
                 if (!giver.isParentOf(receiver) && !giver.isGodParentOf(receiver)) {    // forbidden: give to one of my children or my godson
-                    for (i in 0 until maxChildrenByAdult) {
-                        // uniform probability, could be amended
-                        val proba = Random.nextDouble()
-                        pairs.add(GiverReceiver(giver, receiver, proba))
-                    }
+                    for (i in 0 until maxChildrenByAdult) pairs += GiverReceiver(giver, receiver)
                 }
             }
         }
