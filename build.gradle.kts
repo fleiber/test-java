@@ -2,8 +2,8 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.0"
-    id("com.github.ben-manes.versions") version "0.36.0" // find dependency updates
+    kotlin("jvm") version "1.5.31"
+    id("com.github.ben-manes.versions") version "0.39.0" // find dependency updates
 }
 
 repositories {
@@ -11,19 +11,21 @@ repositories {
 }
 
 dependencies {
-    api("com.google.guava:guava:30.1.1-jre")
-    api("org.apache.commons:commons-csv:1.8")
+    api("com.google.guava:guava:31.0.1-jre")
+    api("org.apache.commons:commons-csv:1.9.0")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+    implementation("com.github.luben:zstd-jni:1.5.0-4")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         languageVersion = "1.5"
         apiVersion = "1.5"
-        jvmTarget = "15"
-        freeCompilerArgs = listOf("-progressive", "-Xjsr305=strict", "-Xjvm-default=all", "-Xstring-concat=indy", "-Xlambdas=indy")
+        jvmTarget = "16"
+        freeCompilerArgs = listOf("-progressive", "-Xjsr305=strict", "-Xjvm-default=all", "-Xstring-concat=indy", "-Xlambdas=indy", "-Xself-upper-bound-inference", "-Xunrestricted-builder-inference", "-Xtype-enhancement-improvements-strict-mode")
     }
 }
 

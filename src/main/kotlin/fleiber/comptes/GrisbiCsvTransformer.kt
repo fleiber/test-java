@@ -9,12 +9,12 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.writeText
 
 /**
- * Small script merging Grisbi extracts in something more usable.
+ * Small script merging Grisbi extracts in something somewhat more usable.
  */
 @ExperimentalPathApi
 fun main(args: Array<String>) {
     val folder = Path.of(args[0])
-    val outputFormat = CSVFormat.newFormat('\t').withQuote('"').withRecordSeparator('\n').withHeader("Nom du compte", "Date", "Tiers", "Montant", "Solde", "Catégorie", "Sous-catégories", "Remarques")
+    val outputFormat = CSVFormat.Builder.create().setDelimiter('\t').setQuote('"').setRecordSeparator('\n').setHeader("Nom du compte", "Date", "Tiers", "Montant", "Solde", "Catégorie", "Sous-catégories", "Remarques").build()
     val outputBuffer = StringBuilder(1 shl 16)
     val outputPrinter = outputFormat.print(outputBuffer)
     val numberFormat = NumberFormat.getNumberInstance().apply {
@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
         println("Parsing $fileName...")
 
         val account = fileName.substringAfter("Comptes-").substringBefore(".csv")
-        val parser = CSVParser.parse(accountFile, Charsets.UTF_8, CSVFormat.newFormat('\t').withFirstRecordAsHeader().withQuote('"').withTrailingDelimiter())
+        val parser = CSVParser.parse(accountFile, Charsets.UTF_8, CSVFormat.Builder.create().setDelimiter('\t').setHeader().setSkipHeaderRecord(true).setQuote('"').setTrailingDelimiter(true).build())
 
         try {
             var currentCounterparty = ""

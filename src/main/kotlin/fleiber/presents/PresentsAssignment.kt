@@ -1,6 +1,9 @@
 package fleiber.presents
 
-import com.google.common.collect.*
+import com.google.common.collect.BiMap
+import com.google.common.collect.EnumBiMap
+import com.google.common.collect.Multimaps
+import com.google.common.collect.SetMultimap
 import fleiber.presents.Adult.*
 import fleiber.presents.Child.*
 import java.util.*
@@ -33,36 +36,57 @@ fun main() {
 }
 
 
-private val EXEMPTED_FROM_CHILDREN_GIFTS = setOf(BRUNO, NELLY)
+private val MAX_CHILDREN_GIFTS: Map<Adult, Int> = mapOf(BRUNO to 1, NELLY to 1)
 
-val ASSIGNMENTS_2018 = mapOf(
-        DENIS to listOf<Person>(LOUIS_MARIE, CYPRIEN, AUGUSTIN),
-        CATHERINE to listOf(EMMANUEL, CLAUDE, /*JOSEPH*/),
-        FRANCOIS to listOf(HELENE, PIERRE, ANTOINE),
-        JIE to listOf(CATHERINE, TIMOTHEE),
-        EMMANUEL to listOf(DENIS, BARNABE, ETIENNE),
-        HELENE to listOf(JIE, DANAELLE, GREGOIRE),
-        LOUIS_MARIE to listOf(NELLY, JEANNE, EMMA),
-        ANNE_EMMANUEL to listOf(BRUNO, AMELIE),
-        BRUNO to listOf(FRANCOIS),
-        NELLY to listOf(ANNE_EMMANUEL))
-val ASSIGNMENTS_2019 = mapOf(
-        DENIS to listOf<Person>(EMMANUEL, BARNABE, GREGOIRE),
-        CATHERINE to listOf(ANNE_EMMANUEL, AMELIE, TIMOTHEE),
-        FRANCOIS to listOf(BRUNO, CYPRIEN, AUGUSTIN),
-        JIE to listOf(HELENE, ANTOINE),
-        EMMANUEL to listOf(CATHERINE, ETIENNE),
-        HELENE to listOf(LOUIS_MARIE, CLAUDE, EMMA),
-        LOUIS_MARIE to listOf(JIE, JEANNE, PIERRE),
-        ANNE_EMMANUEL to listOf(NELLY, DANAELLE),
-        BRUNO to listOf(DENIS),
-        NELLY to listOf(FRANCOIS))
+val ASSIGNMENTS_2018 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(LOUIS_MARIE, CYPRIEN, AUGUSTIN),
+    CATHERINE to listOf(EMMANUEL, CLAUDE /*JOSEPH*/),
+    FRANCOIS to listOf(HELENE, PIERRE/*, ANTOINE*/),
+    JIE to listOf(CATHERINE, TIMOTHEE),
+    EMMANUEL to listOf(DENIS, BARNABE, ETIENNE),
+    HELENE to listOf(JIE, DANAELLE, GREGOIRE),
+    LOUIS_MARIE to listOf(NELLY, JEANNE, EMMA),
+    ANNE_EMMANUEL to listOf(BRUNO, AMELIE),
+    BRUNO to listOf(FRANCOIS),
+    NELLY to listOf(ANNE_EMMANUEL)
+)
+val ASSIGNMENTS_2019 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(EMMANUEL, BARNABE, GREGOIRE),
+    CATHERINE to listOf(ANNE_EMMANUEL, AMELIE, TIMOTHEE),
+    FRANCOIS to listOf(BRUNO, CYPRIEN, AUGUSTIN),
+    JIE to listOf(HELENE/*, ANTOINE*/),
+    EMMANUEL to listOf(CATHERINE, ETIENNE),
+    HELENE to listOf(LOUIS_MARIE, CLAUDE, EMMA),
+    LOUIS_MARIE to listOf(JIE, JEANNE, PIERRE),
+    ANNE_EMMANUEL to listOf(NELLY, DANAELLE),
+    BRUNO to listOf(DENIS),
+    NELLY to listOf(FRANCOIS)
+)
+val ASSIGNMENTS_2020 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(BRUNO, CLAUDE, JEANNE),
+    CATHERINE to listOf(JIE, BARNABE, EMMA),
+    FRANCOIS to listOf(NELLY, TIMOTHEE, GREGOIRE),
+    JIE to listOf(EMMANUEL, ETIENNE, TERESA),
+    EMMANUEL to listOf(ANNE_EMMANUEL, DANAELLE/*, ANTOINE*/),
+    HELENE to listOf(DENIS, CYPRIEN, AUGUSTIN),
+    LOUIS_MARIE to listOf(CATHERINE, AMELIE),
+    ANNE_EMMANUEL to listOf(FRANCOIS, PIERRE),
+    BRUNO to listOf(HELENE),
+    NELLY to listOf(LOUIS_MARIE)
+)
 
-private data class GiverReceiver<P : Person>(val giver: Adult, val receiver: P) {
+private data class Assignment<P : Person>(
+    val giver: Adult,
+    val receiver: P,
     // start with uniform probability, then reducing the probability for past giver/receiver pairs
-    // could be tuned in various ways, like girls having a higher proba of offering to girl, etc
-    val proba = Random.nextDouble() + (if (receiver in ASSIGNMENTS_2019[giver]!!) -0.3 else 0.0) + (if (receiver in ASSIGNMENTS_2018[giver]!!) -0.15 else 0.0)
-}
+    // could be tuned in various ways, like women having a higher proba of offering to girls (or the opposite), etc
+    val proba: Double = Random.nextDouble() + when (receiver) {
+        in ASSIGNMENTS_2020[giver]!! -> -0.8
+        in ASSIGNMENTS_2019[giver]!! -> -0.4
+        in ASSIGNMENTS_2018[giver]!! -> -0.2
+        else -> 0.0
+    }
+)
 
 /**
  * Computes 1-1 giver-receiver relations between adults.
@@ -73,17 +97,17 @@ private fun computeAdultToAdultAssignments(): BiMap<Adult, Adult> {
         assignments.clear()
 
         // compute the pairs of all giver-receiver possibilities, with a random proba
-        val pairs = mutableListOf<GiverReceiver<Adult>>()
+        val possibilities = mutableListOf<Assignment<Adult>>()
         for (giver in Adult.values()) {
             for (receiver in Adult.values()) {
                 if (giver !== receiver && !giver.isMarriedTo(receiver)) {    // only forbidden: offer to myself or my husband/wife
-                    pairs += GiverReceiver(giver, receiver)
+                    possibilities += Assignment(giver, receiver)
                 }
             }
         }
         // sort by proba, then loop (highest probas first) and add pair if giver and receiver were not yet included
-        pairs.sortBy { -it.proba }
-        pairs.forEach { (giver, receiver) ->
+        possibilities.sortBy { -it.proba }
+        possibilities.forEach { (giver, receiver) ->
             if (!assignments.containsKey(giver) && !assignments.containsValue(receiver)) {
                 assignments[giver] = receiver
             }
@@ -101,21 +125,29 @@ private fun computeAdultToChildAssignments(): SetMultimap<Adult, Child> {
     do {
         assignments.clear()
 
+        // all this would be so much more readable with a matrix library!
+
         // compute the pairs of all giver-receiver possibilities, with a random proba
-        val pairs = mutableListOf<GiverReceiver<Child>>()
+        val possibilities = mutableListOf<Assignment<Child>>()
         for (giver in Adult.values()) {
-            if (giver in EXEMPTED_FROM_CHILDREN_GIFTS) continue
+            if (MAX_CHILDREN_GIFTS[giver] == 0) continue
             for (receiver in Child.values()) {
                 if (!giver.isParentOf(receiver) && !giver.isGodParentOf(receiver)) {    // forbidden: give to one of my children or my godson
-                    for (i in 0 until maxChildrenByAdult) pairs += GiverReceiver(giver, receiver)
+                    possibilities += Assignment(giver, receiver)
                 }
             }
         }
         // sort by proba, then loop (highest probas first) and add pair if giver and receiver were not yet included
-        pairs.sortBy { -it.proba }
-        pairs.forEach { (giver, receiver) ->
-            if (assignments[giver].size < maxChildrenByAdult && !assignments.containsValue(receiver)) {
-                assignments.put(giver, receiver)
+        while (possibilities.isNotEmpty()) {
+            val (currentGiver, currentReceiver) = possibilities.maxByOrNull { it.proba }!!
+            assignments[currentGiver] += currentReceiver
+            val copy = possibilities.toMutableList()
+            possibilities.clear()
+            val isGiverDone = assignments[currentGiver].size == (MAX_CHILDREN_GIFTS[currentGiver] ?: maxChildrenByAdult)
+            copy.forEach { pair ->
+                if (pair.receiver === currentReceiver) return@forEach
+                if (isGiverDone && pair.giver === currentGiver) return@forEach
+                possibilities += if (pair.giver === currentGiver) pair.copy(proba = pair.proba - 0.5) else pair
             }
         }
     } while (assignments.size() < Child.values().size || assignments.keys().size < Adult.values().size) // sometimes we may have fallen on an impossible case, just try again

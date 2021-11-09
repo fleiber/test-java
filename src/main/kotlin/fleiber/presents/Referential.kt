@@ -46,7 +46,7 @@ enum class Child(override val firstName: String) : Person {
     AUGUSTIN    ("Augustin"),
     GREGOIRE    ("Grégoire"),
 //    JOSEPH      ("Joseph"),
-    ANTOINE     ("Antoine"),
+//    ANTOINE     ("Antoine"),
     TERESA      ("Teresa");
 
     override fun toString() = firstName
@@ -58,7 +58,7 @@ enum class Family(val father: Adult, val mother: Adult, vararg _children: Child)
     PAPE_MAME       (DENIS, CATHERINE),
     FRANCOIS_JIE    (FRANCOIS, JIE,                 AMELIE, BARNABE, CLAUDE, DANAELLE, EMMA),
     MANU_HELENE     (EMMANUEL, HELENE,              JEANNE, PIERRE, TERESA),
-    LM_MANUE        (LOUIS_MARIE, ANNE_EMMANUEL,    TIMOTHEE, CYPRIEN, ETIENNE, AUGUSTIN, GREGOIRE, ANTOINE),
+    LM_MANUE        (LOUIS_MARIE, ANNE_EMMANUEL,    TIMOTHEE, CYPRIEN, ETIENNE, AUGUSTIN, GREGOIRE/*, JOSEPH, ANTOINE*/),
     BRUNO_NELLY     (BRUNO, NELLY);
 
     val children = _children.toSet()
@@ -79,16 +79,16 @@ enum class Family(val father: Adult, val mother: Adult, vararg _children: Child)
 
 
 val GOD_PARENTS = listOf(
-        AMELIE to HELENE,
-        BARNABE to LOUIS_MARIE,
-        CLAUDE to BRUNO,
-        EMMA to EMMANUEL, EMMA to ANNE_EMMANUEL,
-        JEANNE to FRANCOIS,
-        TERESA to LOUIS_MARIE,
-        CYPRIEN to JIE,
-        ETIENNE to HELENE,
-        GREGOIRE to EMMANUEL,
-//            JOSEPH to FRANCOIS,
+    AMELIE to HELENE,
+    BARNABE to LOUIS_MARIE,
+    CLAUDE to BRUNO,
+    EMMA to EMMANUEL, EMMA to ANNE_EMMANUEL,
+    JEANNE to FRANCOIS,
+    TERESA to LOUIS_MARIE,
+    CYPRIEN to JIE,
+    ETIENNE to HELENE,
+    GREGOIRE to EMMANUEL,
+//    JOSEPH to FRANCOIS,
 ).groupBy({ it.first }, { it.second })
 
 
