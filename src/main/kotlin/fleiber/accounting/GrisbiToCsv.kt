@@ -1,4 +1,4 @@
-package fleiber.comptes
+package fleiber.accounting
 
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
