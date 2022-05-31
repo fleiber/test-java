@@ -2,8 +2,8 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.10"
-    id("com.github.ben-manes.versions") version "0.41.0" // find dependency updates
+    kotlin("jvm") version "1.7.0-RC"
+    id("com.github.ben-manes.versions") version "0.42.0" // find dependency updates
 }
 
 repositories {
@@ -11,10 +11,13 @@ repositories {
 }
 
 dependencies {
-    api("com.google.guava:guava:31.0.1-jre")
+    api("com.google.guava:guava:31.1-jre")
     api("org.apache.commons:commons-csv:1.9.0")
 
-    implementation("com.github.luben:zstd-jni:1.5.2-1")
+    implementation("com.itextpdf:kernel:7.2.2")
+    implementation("com.itextpdf:io:7.2.2")
+    implementation("com.itextpdf:layout:7.2.2")
+    implementation("com.github.luben:zstd-jni:1.5.2-3")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
