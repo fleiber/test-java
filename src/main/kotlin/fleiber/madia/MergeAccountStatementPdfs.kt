@@ -28,9 +28,14 @@ fun main(args: Array<String>) {
     val pdfFiles = folder.listDirectoryEntries("*.pdf").sorted()
     println("Will parse ${pdfFiles.size} PDFs from $folder")
 
+    var firstFormat: StatementPdfFormat? = null
+    var lastFormat: StatementPdfFormat? = null
     val mergedLines = mutableListOf<AccountLine>()
     pdfFiles.forEach { file ->
-        val format = StatementPdfFormat.create(file.name)
+        val format = StatementPdfFormat.create(file.name).also {
+            if (firstFormat == null) firstFormat = it
+            lastFormat = it
+        }
         val parsingListener = PdfParsingListener()
         val parser = PdfCanvasProcessor(parsingListener)
         val lines = mutableListOf<AccountLine>()
@@ -48,11 +53,12 @@ fun main(args: Array<String>) {
     }
 
     // Export result as CSV
-    folder.resolve("merged_${ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.csv")
+    folder.resolve("Relevés ${firstFormat!!.accountKey} ${firstFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}-${lastFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}_${ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv")
         .writeLines(listOf(AccountLine.CSV_HEADER) + mergedLines.map { it.toCsv() })
 }
 
 private class StatementPdfFormat(
+    val accountKey: String,
     val date: LocalDate,
     val detectionColumnStarts: FloatArray, // Detect interesting lines by exact absciss of first two columns which are left-justified
     val otherColumnStarts: FloatArray,  // Approximate starting absciss of last columns, since they can be right-justified
@@ -85,13 +91,13 @@ private class StatementPdfFormat(
 
         fun create(fileName: String): StatementPdfFormat =
             sgFrFileNameRegexp.matchEntire(fileName)?.let {
-                StatementPdfFormat(
+                StatementPdfFormat("FR",
                     LocalDate.parse(it.groupValues[1], dateFormat),
                     floatArrayOf(31.2f, 124.08f), floatArrayOf(400.0f, 500.0f),
                     dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 1, debitColumn = 2, creditColumn = 3
                 )
             } ?: sgMgFileNameRegexp.matchEntire(fileName)?.let {
-                StatementPdfFormat(
+                StatementPdfFormat("MG",
                     LocalDate.parse(it.groupValues[1], dateFormat),
                     floatArrayOf(37.5f, 73.02f, 90.03f), floatArrayOf(354.81f, 390.0f, 490.0f),
                     dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 2, debitColumn = 4, creditColumn = 5
