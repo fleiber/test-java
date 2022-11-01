@@ -47,7 +47,9 @@ enum class Child(override val firstName: String) : Person {
     GREGOIRE    ("Grégoire"),
 //    JOSEPH      ("Joseph"),
 //    ANTOINE     ("Antoine"),
-    TERESA      ("Teresa");
+    TERESA      ("Teresa"),
+    NORA        ("Nora"),
+;
 
     override fun toString() = firstName
 }
@@ -59,7 +61,7 @@ enum class Family(val father: Adult, val mother: Adult, vararg _children: Child)
     FRANCOIS_JIE    (FRANCOIS, JIE,                 AMELIE, BARNABE, CLAUDE, DANAELLE, EMMA),
     MANU_HELENE     (EMMANUEL, HELENE,              JEANNE, PIERRE, TERESA),
     LM_MANUE        (LOUIS_MARIE, ANNE_EMMANUEL,    TIMOTHEE, CYPRIEN, ETIENNE, AUGUSTIN, GREGOIRE/*, JOSEPH, ANTOINE*/),
-    BRUNO_NELLY     (BRUNO, NELLY);
+    BRUNO_NELLY     (BRUNO, NELLY,                  NORA);
 
     val children = _children.toSet()
 

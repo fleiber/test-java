@@ -74,6 +74,18 @@ val ASSIGNMENTS_2020 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(HELENE),
     NELLY to listOf(LOUIS_MARIE)
 )
+val ASSIGNMENTS_2021 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(HELENE, EMMA, TERESA),
+    CATHERINE to listOf(LOUIS_MARIE, AMELIE, GREGOIRE),
+    FRANCOIS to listOf(ANNE_EMMANUEL, ETIENNE),
+    JIE to listOf(NELLY, AUGUSTIN),
+    EMMANUEL to listOf(BRUNO, TIMOTHEE, CYPRIEN),
+    HELENE to listOf(FRANCOIS, BARNABE),
+    LOUIS_MARIE to listOf(EMMANUEL, DANAELLE),
+    ANNE_EMMANUEL to listOf(CATHERINE, JEANNE),
+    BRUNO to listOf(JIE, PIERRE),
+    NELLY to listOf(DENIS, CLAUDE)
+)
 
 private data class Assignment<P : Person>(
     val giver: Adult,
@@ -81,9 +93,10 @@ private data class Assignment<P : Person>(
     // start with uniform probability, then reducing the probability for past giver/receiver pairs
     // could be tuned in various ways, like women having a higher proba of offering to girls (or the opposite), etc
     val proba: Double = Random.nextDouble() + when (receiver) {
-        in ASSIGNMENTS_2020[giver]!! -> -0.8
-        in ASSIGNMENTS_2019[giver]!! -> -0.4
-        in ASSIGNMENTS_2018[giver]!! -> -0.2
+        in ASSIGNMENTS_2021[giver]!! -> -0.8
+        in ASSIGNMENTS_2020[giver]!! -> -0.4
+        in ASSIGNMENTS_2019[giver]!! -> -0.2
+        in ASSIGNMENTS_2018[giver]!! -> -0.1
         else -> 0.0
     }
 )
