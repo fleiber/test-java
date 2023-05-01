@@ -1,5 +1,6 @@
 package fleiber.accounting
 
+import fleiber.quoted
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.nio.file.Path
@@ -58,7 +59,6 @@ fun main(args: Array<String>) {
 private fun Attributes.getInt(qName: String) = getValue(qName).toInt()
 private fun Attributes.getDouble(qName: String) = getValue(qName).toDouble()
 private operator fun Attributes.get(qName: String) = getValue(qName).let { if (it == "(null)") "" else it }
-private fun String.quoted() = if (',' in this || '"' in this) '"' + replace("\"", "\"\"") + '"' else this
 
 
 /**

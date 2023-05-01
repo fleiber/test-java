@@ -37,19 +37,18 @@ enum class AccountLineSubCategory(
     VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",       { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" }),
 
     PROJET_ORPHELINAT_BROUSSE (PROJET,           "Projet orphelinat brousse",       { firstLine, _ -> firstLine == "VIRT FAV: ORPHELINAT DE BROUSS" }),
-    PROJET_BETONNIER          (PROJET,           "Projet bétonnier",                { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" }),
-    PROJET_FIANAR             (PROJET,           "Projet Fianarantsoa",             { firstLine, _ -> firstLine.replace("VIRT FAV :", "VIRT FAV:") == "VIRT FAV: AIC FIANARANTSOA" }),
+    PROJET_BETONNIER          (PROJET,           "Travaux / investissement",        { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
+    PROJET_FIANAR             (PROJET,           "Projet Fianarantsoa",             { firstLine, _ -> "AIC FIANARANTSOA" in firstLine }),
 
     // FR account
     AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                 { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
 
-    VIREMENT_RECU             (DON,              "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST REC") }),
+    VIREMENT_RECU             (DON,              "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
     PRELEVEMENT               (DON,              "Prélèvement",                     { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
     DEPOT_CHEQUE              (DON,              "Dépôt chèques",                   { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
-
     DEPOT_ESPECES             (DON,              "Dépôt espèces",                   { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") }),
 
-    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",         { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check(full.endsWith("CHEZ: BFAVMGMGXXX BFV-STE.GENERALE/TANANAR")) { "Destinataire virement inconnu: $full" }; true } else false }),
+    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",         { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
 
     // Common
     FRAIS_BANCAIRES           (CAT_DEPENSE,      "Frais bancaires",                 { firstLine, _ ->
@@ -83,7 +82,7 @@ data class AccountLine(
     val fiscalYear get() = if (subCategory === AccountLineSubCategory.DEPOT_CHEQUE && date.month === Month.JANUARY && date.dayOfMonth < 20) date.year - 1 else date.year
     val amount get() = if (credit.isNaN()) -debit else credit
 
-    fun toCsv() = "$fiscalYear,$date,${subCategory.category.description},${subCategory.description},${debit.formatCsv()},${credit.formatCsv()},\"$detailsText\""
+    fun toCsv() = "$fiscalYear,${if (fiscalYear < date.year) 12 else date.monthValue},$date,${subCategory.category.description},${subCategory.description},${debit.formatCsv()},${credit.formatCsv()},${(if (credit.isNaN()) -debit else credit).formatCsv()},\"$detailsText\""
 
     override fun toString() = date.toString().padEnd(12) +
             ' ' + subCategory.category.description.padEnd(20) +
@@ -111,7 +110,7 @@ data class AccountLine(
         private fun Float.formatCsv() = if (isNaN()) "" else toString()
 
         @Suppress("SpellCheckingInspection")
-        const val CSV_HEADER = "Année fiscale,Date,Catégorie,Sous-catégorie,Débit,Crédit,Détails"
+        const val CSV_HEADER = "Année fiscale,Mois,Date,Catégorie,Sous-catégorie,Débit,Crédit,Signed,Détails"
         private val AMOUNT_FORMAT = DecimalFormat("###,###.00")
 
         fun loadCsv(file: Path): List<AccountLine> {

@@ -3,7 +3,9 @@ package fleiber
 import kotlin.math.min
 
 
+fun String.quoted() = if (',' in this || '"' in this) '"' + replace("\"", "\"\"") + '"' else this
 fun String.parseInt(beginIndex: Int, endIndex: Int) = Integer.parseInt(this, beginIndex, endIndex, 10)
+
 
 /**
  * Implementation adapted from https://github.com/tdebatty/java-string-similarity.
@@ -27,13 +29,9 @@ fun String.parseInt(beginIndex: Int, endIndex: Int) = Integer.parseInt(this, beg
  * only 2 rows of data. The space requirement is thus O(m) and the algorithm
  * runs in O(mn).
  *
- * @param s1 The first string to compare.
- * @param s2 The second string to compare.
  * @param limit The maximum result to compute before stopping. This
  * means that the calculation can terminate early if you
  * only care about strings with a certain similarity.
- * Set this to Integer.MAX_VALUE if you want to run the
- * calculation to completion in every case.
  */
 fun levenshteinDistance(s1: String, s2: String, limit: Int = Int.MAX_VALUE): Int {
     if (s1 == s2) return 0
