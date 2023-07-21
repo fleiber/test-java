@@ -70,7 +70,7 @@ enum class Family(val father: Adult, val mother: Adult, vararg _children: Child)
 
     companion object {
         internal val BY_PERSON: Map<Person, Family> = mutableMapOf<Person, Family>().apply {
-            values().forEach { family ->
+            Family.entries.forEach { family ->
                 this[family.father] = family
                 this[family.mother] = family
                 family.children.forEach { child -> this[child] = family }

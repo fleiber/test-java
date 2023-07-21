@@ -38,7 +38,7 @@ fun main(args: Array<String>) {
     println(resourceLines.joinToString("\n"))
 
     val remainingAccountLines = accountLines
-        .filter { it.fiscalYear == fiscalYear && it.subCategory.category === AccountLineCategory.DON }
+        .filter { it.fiscalYear == fiscalYear && it.subCategory.category === AccountLineCategory.RESSOURCES }
         .groupBy { if (it.subCategory !== AccountLineSubCategory.PRELEVEMENT) it else it.date }
         .values
         .mapTo(mutableListOf()) { list -> if (list.size == 1) list.single() else AccountLine(list[0].date, AccountLineSubCategory.PRELEVEMENT, Float.NaN, list.sumOf { it.credit.toDouble() }.toFloat(), list.joinToString("    ") { it.detailsText }) }

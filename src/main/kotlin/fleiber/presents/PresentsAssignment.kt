@@ -14,12 +14,12 @@ import kotlin.random.Random
 fun main() {
     println("\n===================================")
     println("Adults:\n")
-    for (adult in Adult.values()) {
+    for (adult in Adult.entries) {
         println(adult.initials + ". " + adult.firstName + if (adult.nickName != null) " [" + adult.nickName + "]" else "")
     }
     println("\n===================================")
     println("Families:\n")
-    for (family in Family.values()) {
+    for (family in Family.entries) {
         println(family.toString() + ": " + family.father.displayName + " and " + family.mother.displayName + " " + if (family.children.isEmpty()) "" else family.children)
     }
     println("\n===================================")
@@ -111,8 +111,8 @@ private fun computeAdultToAdultAssignments(): BiMap<Adult, Adult> {
 
         // compute the pairs of all giver-receiver possibilities, with a random proba
         val possibilities = mutableListOf<Assignment<Adult>>()
-        for (giver in Adult.values()) {
-            for (receiver in Adult.values()) {
+        for (giver in Adult.entries) {
+            for (receiver in Adult.entries) {
                 if (giver !== receiver && !giver.isMarriedTo(receiver)) {    // only forbidden: offer to myself or my husband/wife
                     possibilities += Assignment(giver, receiver)
                 }
@@ -125,7 +125,7 @@ private fun computeAdultToAdultAssignments(): BiMap<Adult, Adult> {
                 assignments[giver] = receiver
             }
         }
-    } while (assignments.size < Adult.values().size) // sometimes we may have fallen on an impossible case, just try again
+    } while (assignments.size < Adult.entries.size) // sometimes we may have fallen on an impossible case, just try again
     return assignments
 }
 
@@ -134,7 +134,7 @@ private fun computeAdultToAdultAssignments(): BiMap<Adult, Adult> {
  */
 private fun computeAdultToChildAssignments(): SetMultimap<Adult, Child> {
     val assignments = Multimaps.newSetMultimap(EnumMap(Adult::class.java)) { EnumSet.noneOf(Child::class.java) }
-    val maxChildrenByAdult = ceil(Child.values().size.toDouble() / Adult.values().size).toInt()
+    val maxChildrenByAdult = ceil(Child.entries.size.toDouble() / Adult.entries.size).toInt()
     do {
         assignments.clear()
 
@@ -142,9 +142,9 @@ private fun computeAdultToChildAssignments(): SetMultimap<Adult, Child> {
 
         // compute the pairs of all giver-receiver possibilities, with a random proba
         val possibilities = mutableListOf<Assignment<Child>>()
-        for (giver in Adult.values()) {
+        for (giver in Adult.entries) {
             if (MAX_CHILDREN_GIFTS[giver] == 0) continue
-            for (receiver in Child.values()) {
+            for (receiver in Child.entries) {
                 if (!giver.isParentOf(receiver) && !giver.isGodParentOf(receiver)) {    // forbidden: give to one of my children or my godson
                     possibilities += Assignment(giver, receiver)
                 }
@@ -163,6 +163,6 @@ private fun computeAdultToChildAssignments(): SetMultimap<Adult, Child> {
                 possibilities += if (pair.giver === currentGiver) pair.copy(proba = pair.proba - 0.5) else pair
             }
         }
-    } while (assignments.size() < Child.values().size || assignments.keys().size < Adult.values().size) // sometimes we may have fallen on an impossible case, just try again
+    } while (assignments.size() < Child.entries.size || assignments.keys().size < Adult.entries.size) // sometimes we may have fallen on an impossible case, just try again
     return assignments
 }

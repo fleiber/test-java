@@ -7,8 +7,8 @@ import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.Month
 import kotlin.io.path.forEachLine
-import fleiber.madia.AccountLineCategory.DEPENSE as CAT_DEPENSE
 import fleiber.madia.AccountLineCategory.AUTRE_RESSOURCE as CAT_RESSOURCE
+import fleiber.madia.AccountLineCategory.DEPENSE as CAT_DEPENSE
 
 
 @Suppress("SpellCheckingInspection")
@@ -18,7 +18,7 @@ enum class AccountLineCategory(
 
     VIREMENT_INTERNE    ("Virement interne"),
     PROJET              ("Projets"),
-    DON                 ("Don"),
+    RESSOURCES          ("Ressources"),
     AUTRE_RESSOURCE     ("Autre ressource"),
     DEPENSE             ("Dépense"),
     ;
@@ -43,10 +43,10 @@ enum class AccountLineSubCategory(
     // FR account
     AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                 { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
 
-    VIREMENT_RECU             (DON,              "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
-    PRELEVEMENT               (DON,              "Prélèvement",                     { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
-    DEPOT_CHEQUE              (DON,              "Dépôt chèques",                   { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
-    DEPOT_ESPECES             (DON,              "Dépôt espèces",                   { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") }),
+    VIREMENT_RECU             (RESSOURCES,              "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
+    PRELEVEMENT               (RESSOURCES,              "Prélèvement",                     { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
+    DEPOT_CHEQUE              (RESSOURCES,              "Dépôt chèques",                   { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
+    DEPOT_ESPECES             (RESSOURCES,              "Dépôt espèces",                   { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") }),
 
     VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",         { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
 
@@ -55,6 +55,8 @@ enum class AccountLineSubCategory(
                 firstLine.startsWith("FACTURATION PROGELIANCE NET") ||  // abonnement SG FR
                 firstLine.startsWith("COTISATION JAZZ ASSOCIATIONS") || // abonnement SG FR
                 firstLine.startsWith("FRAIS SUR PRLV EUROP. EMIS") ||   // frais pour remise prélèvements
+                firstLine.startsWith("FRAIS SUR PRLV SEPA. EMIS") ||
+                firstLine.startsWith("FRAIS SUR PRLVT SEPA EMIS") ||
                 firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
                 firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
                 firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
@@ -65,9 +67,8 @@ enum class AccountLineSubCategory(
 
 
     companion object {
-        private val ALL = values()
-        fun fromBankStatement(firstLine: String, full: String): AccountLineSubCategory = ALL.first { it.predicate(firstLine, full) }
-        fun fromDescription(description: String): AccountLineSubCategory = ALL.firstOrNull { it.description == description } ?: error("Could not find AccountLineType for $description")
+        fun fromBankStatement(firstLine: String, full: String): AccountLineSubCategory = entries.first { it.predicate(firstLine, full) }
+        fun fromDescription(description: String): AccountLineSubCategory = entries.firstOrNull { it.description == description } ?: error("Could not find AccountLineType for $description")
     }
 }
 
