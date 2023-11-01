@@ -34,7 +34,7 @@ enum class AccountLineSubCategory(
 ) {
 
     // MG account
-    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",       { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" }),
+    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",       { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" || firstLine == "VIR RECU 9325077689349" }),
 
     PROJET_ORPHELINAT_BROUSSE (PROJET,           "Projet orphelinat brousse",       { firstLine, _ -> firstLine == "VIRT FAV: ORPHELINAT DE BROUSS" }),
     PROJET_BETONNIER          (PROJET,           "Travaux / investissement",        { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
@@ -43,25 +43,24 @@ enum class AccountLineSubCategory(
     // FR account
     AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                 { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
 
-    VIREMENT_RECU             (RESSOURCES,              "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
-    PRELEVEMENT               (RESSOURCES,              "Prélèvement",                     { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
-    DEPOT_CHEQUE              (RESSOURCES,              "Dépôt chèques",                   { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
-    DEPOT_ESPECES             (RESSOURCES,              "Dépôt espèces",                   { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") }),
+    VIREMENT_RECU             (RESSOURCES,       "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
+    PRELEVEMENT               (RESSOURCES,       "Prélèvement",                     { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
+    DEPOT_CHEQUE              (RESSOURCES,       "Dépôt chèques",                   { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
+    DEPOT_ESPECES             (RESSOURCES,       "Dépôt espèces",                   { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") }),
 
     VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",         { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
+    VIREMENT_LIVRET_1         (VIREMENT_INTERNE, "Virement vers Livret A",          { _, full -> "POUR: MADIA" in full }),
 
     // Common
     FRAIS_BANCAIRES           (CAT_DEPENSE,      "Frais bancaires",                 { firstLine, _ ->
-                firstLine.startsWith("FACTURATION PROGELIANCE NET") ||  // abonnement SG FR
-                firstLine.startsWith("COTISATION JAZZ ASSOCIATIONS") || // abonnement SG FR
-                firstLine.startsWith("FRAIS SUR PRLV EUROP. EMIS") ||   // frais pour remise prélèvements
-                firstLine.startsWith("FRAIS SUR PRLV SEPA. EMIS") ||
-                firstLine.startsWith("FRAIS SUR PRLVT SEPA EMIS") ||
-                firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
-                firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
-                firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
-                firstLine == "ABONNEMENT SG CONNECT" }                  // abonnement SG MG
-    ),
+                                                                                        firstLine.startsWith("FACTURATION PROGELIANCE NET") ||  // abonnement SG FR
+                                                                                        firstLine.startsWith("COTISATION JAZZ ASSOCIATIONS") || // abonnement SG FR
+                                                                                        firstLine.startsWith("FRAIS SUR PRLV") ||               // frais pour remise prélèvements
+                                                                                        firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
+                                                                                        firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
+                                                                                        firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
+                                                                                        firstLine == "ABONNEMENT SG CONNECT" }                  // abonnement SG MG
+                              ),
     DEPENSE                   (CAT_DEPENSE,      "Dépense",                         { _, _ -> true }),
     ;
 
