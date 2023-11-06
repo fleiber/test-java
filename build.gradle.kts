@@ -24,8 +24,8 @@ dependencies {
     implementation("com.itextpdf:layout:8.0.2")
     implementation("com.itextpdf:bouncy-castle-adapter:8.0.2")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
 }
 
 tasks.withType<KotlinCompile> {

@@ -20,7 +20,7 @@ fun main() {
     println("\n===================================")
     println("Families:\n")
     for (family in Family.entries) {
-        println(family.toString() + ": " + family.father.displayName + " and " + family.mother.displayName + " " + if (family.children.isEmpty()) "" else family.children)
+        println(family.toString() + ": " + family.father.displayName + " and " + family.mother.displayName + " " + family.children.ifEmpty { "" })
     }
     println("\n===================================")
     println("God-parents:\n")
@@ -86,6 +86,18 @@ val ASSIGNMENTS_2021 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(JIE, PIERRE),
     NELLY to listOf(DENIS, CLAUDE)
 )
+val ASSIGNMENTS_2022 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(BRUNO, PIERRE, CYPRIEN),
+    CATHERINE to listOf(EMMANUEL, ETIENNE, NORA),
+    FRANCOIS to listOf(LOUIS_MARIE, TERESA),
+    JIE to listOf(DENIS, TIMOTHEE, GREGOIRE),
+    EMMANUEL to listOf(NELLY, BARNABE, AUGUSTIN),
+    HELENE to listOf(CATHERINE, DANAELLE),
+    LOUIS_MARIE to listOf(FRANCOIS, CLAUDE),
+    ANNE_EMMANUEL to listOf(JIE, AMELIE),
+    BRUNO to listOf(ANNE_EMMANUEL, JEANNE),
+    NELLY to listOf(HELENE, EMMA)
+)
 
 private data class Assignment<P : Person>(
     val giver: Adult,
@@ -93,10 +105,11 @@ private data class Assignment<P : Person>(
     // start with uniform probability, then reducing the probability for past giver/receiver pairs
     // could be tuned in various ways, like women having a higher proba of offering to girls (or the opposite), etc
     val proba: Double = Random.nextDouble() + when (receiver) {
-        in ASSIGNMENTS_2021[giver]!! -> -0.8
-        in ASSIGNMENTS_2020[giver]!! -> -0.4
-        in ASSIGNMENTS_2019[giver]!! -> -0.2
-        in ASSIGNMENTS_2018[giver]!! -> -0.1
+        in ASSIGNMENTS_2022[giver]!! -> -0.8
+        in ASSIGNMENTS_2021[giver]!! -> -0.4
+        in ASSIGNMENTS_2020[giver]!! -> -0.2
+        in ASSIGNMENTS_2019[giver]!! -> -0.1
+        in ASSIGNMENTS_2018[giver]!! -> -0.05
         else -> 0.0
     }
 )

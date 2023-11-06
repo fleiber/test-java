@@ -11,6 +11,7 @@ interface Person {
     val initials get() = firstName[0].toString() + firstName.indexOf('-').let { if (it == -1) "" else firstName[it + 1] }
 }
 
+@Suppress("SpellCheckingInspection")
 enum class Adult(override val firstName: String, val nickName: String? = null) : Person {
 
     DENIS           ("Denis", "Papé"),
@@ -31,6 +32,7 @@ enum class Adult(override val firstName: String, val nickName: String? = null) :
 
 // Not as in "child of" but more "underage", otherwise Adults should also be Children
 // Another possibility would be to have everyone in the same enum, but with a "generation" ordinal
+@Suppress("SpellCheckingInspection")
 enum class Child(override val firstName: String) : Person {
 
     AMELIE      ("Amélie"),
@@ -55,7 +57,8 @@ enum class Child(override val firstName: String) : Person {
 }
 
 // Very traditional representation of families :p
-enum class Family(val father: Adult, val mother: Adult, vararg _children: Child) {
+@Suppress("SpellCheckingInspection")
+enum class Family(val father: Adult, val mother: Adult, vararg children: Child) {
 
     PAPE_MAME       (DENIS, CATHERINE),
     FRANCOIS_JIE    (FRANCOIS, JIE,                 AMELIE, BARNABE, CLAUDE, DANAELLE, EMMA),
@@ -63,7 +66,7 @@ enum class Family(val father: Adult, val mother: Adult, vararg _children: Child)
     LM_MANUE        (LOUIS_MARIE, ANNE_EMMANUEL,    TIMOTHEE, CYPRIEN, ETIENNE, AUGUSTIN, GREGOIRE/*, JOSEPH, ANTOINE*/),
     BRUNO_NELLY     (BRUNO, NELLY,                  NORA);
 
-    val children = _children.toSet()
+    val children = children.toSet()
 
     override fun toString() = "${father.initials}&${mother.initials}"
 
