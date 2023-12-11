@@ -4,8 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.20"
-    id("com.github.ben-manes.versions") version "0.49.0" // find dependency updates
+    kotlin("jvm") version "1.9.21"
+    id("com.github.ben-manes.versions") version "0.50.0" // find dependency updates
 }
 
 repositories {
@@ -16,8 +16,8 @@ dependencies {
     api("com.google.guava:guava:32.1.3-jre")
     api("org.apache.commons:commons-csv:1.10.0")
 
-    implementation("ch.qos.logback:logback-classic:1.4.11")
-    implementation("com.github.luben:zstd-jni:1.5.5-10")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
+    implementation("com.github.luben:zstd-jni:1.5.5-11")
 
     implementation("com.itextpdf:kernel:8.0.2")
     implementation("com.itextpdf:io:8.0.2")
