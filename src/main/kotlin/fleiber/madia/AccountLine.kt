@@ -34,34 +34,37 @@ enum class AccountLineSubCategory(
 ) {
 
     // MG account
-    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",       { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" || firstLine == "VIR RECU 9325077689349" }),
+    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",        { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" || firstLine == "VIR RECU 9325077689349" || firstLine == "VIR RECU 9328094610445" }),
 
-    PROJET_ORPHELINAT_BROUSSE (PROJET,           "Projet orphelinat brousse",       { firstLine, _ -> firstLine == "VIRT FAV: ORPHELINAT DE BROUSS" }),
-    PROJET_BETONNIER          (PROJET,           "Travaux / investissement",        { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
-    PROJET_FIANAR             (PROJET,           "Projet Fianarantsoa",             { firstLine, _ -> "AIC FIANARANTSOA" in firstLine }),
+    PROJET_ORPHELINAT_BROUSSE (PROJET,           "Projet orphelinat brousse",        { firstLine, _ -> firstLine == "VIRT FAV: ORPHELINAT DE BROUSS" }),
+    PROJET_BETONNIER          (PROJET,           "Travaux / investissement",         { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
+    PROJET_FIANAR             (PROJET,           "Projet Fianarantsoa",              { firstLine, _ -> "AIC FIANARANTSOA" in firstLine }),
+    CANTINE_ANTSIRABE         (PROJET,           "Cantine Antsirabe Rayon de Soleil",{ firstLine, _ -> "ECAR SOEURS DOMINICAINES" in firstLine }),
 
     // FR account
-    AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                 { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
+    AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                  { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
 
-    VIREMENT_RECU             (RESSOURCES,       "Virement reçu",                   { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
-    PRELEVEMENT               (RESSOURCES,       "Prélèvement",                     { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
-    DEPOT_CHEQUE              (RESSOURCES,       "Dépôt chèques",                   { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
-    DEPOT_ESPECES             (RESSOURCES,       "Dépôt espèces",                   { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") }),
+    HELLO_ASSO                (RESSOURCES,       "HelloAsso",                        { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: HELLOASSO" in full }),
+    SUM_UP                    (RESSOURCES,       "SumUp",                            { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: SUMUP" in full }),
+    VIREMENT_RECU             (RESSOURCES,       "Virement reçu",                    { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
+    PRELEVEMENT               (RESSOURCES,       "Prélèvement",                      { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
+    DEPOT_CHEQUE              (RESSOURCES,       "Dépôt chèques",                    { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
+    DEPOT_ESPECES             (RESSOURCES,       "Dépôt espèces",                    { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") || firstLine.startsWith("VRST GAB") }),
 
-    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",         { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
-    VIREMENT_LIVRET_1         (VIREMENT_INTERNE, "Virement vers Livret A",          { _, full -> "POUR: MADIA" in full }),
+    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",          { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full || "BFAVMGMGXXX BFV-SOCIETE GENERALE" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
+    VIREMENT_LIVRET_1         (VIREMENT_INTERNE, "Virement vers Livret A",           { _, full -> "POUR: MADIA" in full }),
 
     // Common
-    FRAIS_BANCAIRES           (CAT_DEPENSE,      "Frais bancaires",                 { firstLine, _ ->
-                                                                                        firstLine.startsWith("FACTURATION PROGELIANCE NET") ||  // abonnement SG FR
-                                                                                        firstLine.startsWith("COTISATION JAZZ ASSOCIATIONS") || // abonnement SG FR
-                                                                                        firstLine.startsWith("FRAIS SUR PRLV") ||               // frais pour remise prélèvements
-                                                                                        firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
-                                                                                        firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
-                                                                                        firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
-                                                                                        firstLine == "ABONNEMENT SG CONNECT" }                  // abonnement SG MG
+    FRAIS_BANCAIRES           (CAT_DEPENSE,      "Frais bancaires",                  { firstLine, _ ->
+                                                                                         firstLine.startsWith("FACTURATION PROGELIANCE NET") ||  // abonnement SG FR
+                                                                                         firstLine.startsWith("COTISATION JAZZ ASSOCIATIONS") || // abonnement SG FR
+                                                                                         firstLine.startsWith("FRAIS SUR PRLV") ||               // frais pour remise prélèvements
+                                                                                         firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
+                                                                                         firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
+                                                                                         firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
+                                                                                         firstLine == "ABONNEMENT SG CONNECT" }                  // abonnement SG MG
                               ),
-    DEPENSE                   (CAT_DEPENSE,      "Dépense",                         { _, _ -> true }),
+    DEPENSE                   (CAT_DEPENSE,      "Dépense",                          { _, _ -> true }),
     ;
 
 
@@ -79,13 +82,14 @@ data class AccountLine(
     val detailsText: String
 ) {
 
+    val category get() = subCategory.category
     val fiscalYear get() = if (subCategory === AccountLineSubCategory.DEPOT_CHEQUE && date.month === Month.JANUARY && date.dayOfMonth < 20) date.year - 1 else date.year
     val amount get() = if (credit.isNaN()) -debit else credit
 
-    fun toCsv() = "$fiscalYear,${if (fiscalYear < date.year) 12 else date.monthValue},$date,${subCategory.category.description},${subCategory.description},${debit.formatCsv()},${credit.formatCsv()},${(if (credit.isNaN()) -debit else credit).formatCsv()},\"$detailsText\""
+    fun toCsv() = "$fiscalYear,${if (fiscalYear < date.year) 12 else date.monthValue},$date,${category.description},${subCategory.description},${debit.formatCsv()},${credit.formatCsv()},${(if (credit.isNaN()) -debit else credit).formatCsv()},\"$detailsText\""
 
     override fun toString() = date.toString().padEnd(12) +
-            ' ' + subCategory.category.description.padEnd(20) +
+            ' ' + category.description.padEnd(20) +
             ' ' + subCategory.description.padEnd(32) +
             ' ' + (if (debit.isNaN()) "" else AMOUNT_FORMAT.format(debit.toDouble())).padStart(14) +
             ' ' + (if (credit.isNaN()) "" else AMOUNT_FORMAT.format(credit.toDouble())).padStart(14) +
@@ -128,30 +132,24 @@ data class AccountLine(
                     header = false
                     return@forEachLine
                 }
-                if (currentLine[0].isEmpty()) {
+                if (currentLine[0].isEmpty()) { // starting a new line
                     val idx = line.indexOf('"')
-                    val split = line.substring(5, idx).split(',')
+                    val split = line.substring(line.indexOf(',', startIndex = 6) + 1, idx).split(',')
                     currentLine[0] = split[0]
                     currentLine[1] = split[2]
                     currentLine[2] = split[3]
                     currentLine[3] = split[4]
-                    if (idx == -1) {
-                        currentLine[4] = split[5]
+                    if (!line.endsWith('"')) {
+                        currentLine[4] = line.substring(idx + 1)
+                    } else { // single line comment
+                        currentLine[4] = line.substring(idx + 1, line.length - 1)
                         results += create(currentLine)
                         currentLine.fill("")
-                    } else {
-                        if (!line.endsWith('"')) {
-                            currentLine[4] = line.substring(idx + 1)
-                        } else {
-                            currentLine[4] = line.substring(idx + 1, line.length - 1)
-                            results += create(currentLine)
-                            currentLine.fill("")
-                        }
                     }
                 } else {
-                    if (!line.endsWith('"')) {
+                    if (!line.endsWith('"')) { // middle of the comment
                         currentLine[4] += "\n" + line
-                    } else {
+                    } else { // comment finished
                         currentLine[4] += "\n" + line.substring(0, line.length - 1)
                         results += create(currentLine)
                         currentLine.fill("")

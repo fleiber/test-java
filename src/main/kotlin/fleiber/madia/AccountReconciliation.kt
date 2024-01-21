@@ -9,7 +9,7 @@ import kotlin.math.abs
 
 
 fun main(args: Array<String>) {
-    if (args.size != 3) error("Usage: AccountReconciliation path_to_FR_extract_csv path_to_ressources_db_extract fiscal_year")
+    if (args.size != 3) error("Usage: AccountReconciliation path_to_FR_extract_csv path_to_resources_db_extract fiscal_year")
 
     val extractFile = Path(args[0])
     val dbResourcesFile = Path(args[1])
@@ -17,31 +17,54 @@ fun main(args: Array<String>) {
 
     println("\nReading bank account lines from $extractFile...\n")
     val accountLines = AccountLine.loadCsv(extractFile)
+        .filter { it.fiscalYear == fiscalYear && (it.subCategory === AccountLineSubCategory.VIREMENT_RECU || it.subCategory === AccountLineSubCategory.PRELEVEMENT || it.subCategory === AccountLineSubCategory.DEPOT_CHEQUE) }
     println(accountLines.joinToString("\n"))
 
     println("\nReading resource reconciliation lines from $dbResourcesFile...\n")
-    val resourceLines = dbResourcesFile.readLines().let { it.subList(1, it.size) }.map { line ->
+    // 2022 format (it changes every year...)
+//    val resourceLines = dbResourcesFile.readLines().let { it.subList(1, it.size) }.map { line ->
+//        val split = line.split('\t')
+//        AccountLine(
+//            LocalDate.of(split[1].parseInt(6, 10), split[1].parseInt(3, 5), split[1].parseInt(0, 2)),
+//            when (split[2]) {
+//                "VIREMENT" -> AccountLineSubCategory.VIREMENT_RECU
+//                "PRELEVEMENT" -> AccountLineSubCategory.PRELEVEMENT
+//                "DEPOT CHEQUE" -> AccountLineSubCategory.DEPOT_CHEQUE
+//                "DEPOT ESPECES" -> AccountLineSubCategory.DEPOT_ESPECES
+//                else -> error(line)
+//            },
+//            Float.NaN, split[5].toFloat(),
+//            arrayOf(split[3], split[4]).filter { it.isNotBlank() }.joinToString(" ")
+//        )
+//    }
+//    println(resourceLines.joinToString("\n"))
+    // 2023 format
+    val resourceLines = dbResourcesFile.readLines().mapNotNull { line ->
         val split = line.split('\t')
         AccountLine(
             LocalDate.of(split[1].parseInt(6, 10), split[1].parseInt(3, 5), split[1].parseInt(0, 2)),
-            when (split[2]) {
-                "VIREMENT" -> AccountLineSubCategory.VIREMENT_RECU
-                "PRELEVEMENT" -> AccountLineSubCategory.PRELEVEMENT
-                "DEPOT CHEQUE" -> AccountLineSubCategory.DEPOT_CHEQUE
-                "DEPOT ESPECES" -> AccountLineSubCategory.DEPOT_ESPECES
+            when (split[5]) {
+                "Virement" -> AccountLineSubCategory.VIREMENT_RECU
+                "HelloAsso" -> AccountLineSubCategory.HELLO_ASSO.also { return@mapNotNull null }
+                "SUMUP" -> AccountLineSubCategory.SUM_UP.also { return@mapNotNull null }
+                "Prélèvement" -> AccountLineSubCategory.PRELEVEMENT
+                "Chéque", "Chèque" -> AccountLineSubCategory.DEPOT_CHEQUE
+                "DEPOT ESPECES" -> AccountLineSubCategory.DEPOT_ESPECES.also { return@mapNotNull null }
                 else -> error(line)
             },
-            Float.NaN, split[5].toFloat(),
-            arrayOf(split[3], split[4]).filter { it.isNotBlank() }.joinToString(" ")
+            Float.NaN, split[6].replace(',', '.').toFloat().also { if (it < 0f) return@mapNotNull null },
+            split[2]
         )
     }
+        .groupBy { if (it.subCategory === AccountLineSubCategory.VIREMENT_RECU) it else it.subCategory to it.date }
+        .values
+        .mapTo(mutableListOf()) { list -> if (list.size == 1) list.single() else AccountLine(list[0].date, list[0].subCategory, Float.NaN, list.sumOf { it.credit.toDouble() }.toFloat(), list.joinToString("    ") { it.detailsText }) }
     println(resourceLines.joinToString("\n"))
 
     val remainingAccountLines = accountLines
-        .filter { it.fiscalYear == fiscalYear && it.subCategory.category === AccountLineCategory.RESSOURCES }
-        .groupBy { if (it.subCategory !== AccountLineSubCategory.PRELEVEMENT) it else it.date }
+        .groupBy { if (it.subCategory === AccountLineSubCategory.VIREMENT_RECU) it else it.subCategory to it.date }
         .values
-        .mapTo(mutableListOf()) { list -> if (list.size == 1) list.single() else AccountLine(list[0].date, AccountLineSubCategory.PRELEVEMENT, Float.NaN, list.sumOf { it.credit.toDouble() }.toFloat(), list.joinToString("    ") { it.detailsText }) }
+        .mapTo(mutableListOf()) { list -> if (list.size == 1) list.single() else AccountLine(list[0].date, list[0].subCategory, Float.NaN, list.sumOf { it.credit.toDouble() }.toFloat(), list.joinToString("    ") { it.detailsText }) }
     val matchedLines = mutableListOf<Pair<AccountLine, AccountLine>>()
     val unmatchedResourceLines = mutableListOf<AccountLine>()
 
@@ -52,7 +75,7 @@ fun main(args: Array<String>) {
             return@forEach
         }
 
-        val best = candidates.minByOrNull { candidate ->
+        val best = candidates.minBy { candidate ->
             // very crude ranking based on date diff and string distance
             val txt = line.detailsText.replace(" ", "").replace("SOCIETE", "").replace("HOTELIERE", "").replace("HOTEL", "")
             val candidateTxt = candidate.detailsText.let {
@@ -60,7 +83,7 @@ fun main(args: Array<String>) {
                 else it.substringAfter("\nDE: ").substringBefore("\nMOTIF: ").replace("SOCIETE", "").replace("HOTELIERE", "").replace("HOTEL", "")
             }
             abs(candidate.date.toEpochDay() - line.date.toEpochDay()) - (if (txt in candidateTxt || candidateTxt in txt) 5.0 else 0.0) - 100.0 / (1 + levenshteinDistance(candidateTxt, txt))
-        }!!
+        }
         matchedLines += line to best
         remainingAccountLines -= best
     }
