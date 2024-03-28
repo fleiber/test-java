@@ -25,17 +25,16 @@ fun main(args: Array<String>) {
     if (args.size != 1) error("Usage: MergeAccountStatementPdfs path_to_folder_with_pdfs")
 
     val folder = Path.of(args[0])
-    val pdfFiles = folder.listDirectoryEntries("*.pdf").sorted()
+    val pdfFiles = folder.listDirectoryEntries("*.pdf").map { it to StatementPdfFormat.create(it.name) }.sortedBy { it.second.date }
     println("Will parse ${pdfFiles.size} PDFs from $folder")
 
     var firstFormat: StatementPdfFormat? = null
     var lastFormat: StatementPdfFormat? = null
     val mergedLines = mutableListOf<AccountLine>()
-    pdfFiles.forEach { file ->
-        val format = StatementPdfFormat.create(file.name).also {
-            if (firstFormat == null) firstFormat = it
-            lastFormat = it
-        }
+    pdfFiles.forEach { (file, format) ->
+        if (firstFormat == null) firstFormat = format
+        lastFormat = format
+
         val parsingListener = PdfParsingListener()
         val parser = PdfCanvasProcessor(parsingListener)
         val lines = mutableListOf<AccountLine>()
@@ -60,8 +59,8 @@ fun main(args: Array<String>) {
 private class StatementPdfFormat(
     val accountKey: String,
     val date: LocalDate,
-    val detectionColumnStarts: FloatArray, // Detect interesting lines by exact absciss of first two columns which are left-justified
-    val otherColumnStarts: FloatArray,  // Approximate starting absciss of last columns, since they can be right-justified
+    val detectionColumnStarts: FloatArray, // Detect interesting lines by exact abscissa of first two columns which are left-justified
+    val otherColumnStarts: FloatArray,  // Approximate starting abscissa of last columns, since they can be right-justified
     val dateColumn: Int,
     val detailsColumn: Int,
     val detailsFollowingLinesColumn: Int,
@@ -86,13 +85,21 @@ private class StatementPdfFormat(
 
     companion object {
         private val sgFrFileNameRegexp = """releve_\d{11}_(\d{8})\.pdf""".toRegex()
+        private val sgFr2FileNameRegexp = """releve(?:_Livret_A_FR|_Compte_Courant_FR_EUR)?_\d{11}_(\d{8})\.pdf""".toRegex()
         private val sgMgFileNameRegexp = """EXT_(\d{8})_\d{5}_\d{11}_M0\d{1,2}\.pdf""".toRegex()
         private val dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd")
+        private val dateFormat2 = DateTimeFormatter.ofPattern("ddMMyyyy")
 
         fun create(fileName: String): StatementPdfFormat =
             sgFrFileNameRegexp.matchEntire(fileName)?.let {
                 StatementPdfFormat("FR",
                     LocalDate.parse(it.groupValues[1], dateFormat),
+                    floatArrayOf(31.2f, 124.08f), floatArrayOf(400.0f, 500.0f),
+                    dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 1, debitColumn = 2, creditColumn = 3
+                )
+            } ?: sgFr2FileNameRegexp.matchEntire(fileName)?.let {
+                StatementPdfFormat("FR",
+                    LocalDate.parse(it.groupValues[1], dateFormat2),
                     floatArrayOf(31.2f, 124.08f), floatArrayOf(400.0f, 500.0f),
                     dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 1, debitColumn = 2, creditColumn = 3
                 )
