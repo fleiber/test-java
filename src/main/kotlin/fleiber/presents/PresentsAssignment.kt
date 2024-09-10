@@ -36,7 +36,8 @@ fun main() {
 }
 
 
-private val MAX_CHILDREN_GIFTS: Map<Adult, Int> = mapOf(BRUNO to 1, NELLY to 1)
+// To improve fairness, based on the number of children and godchildren
+private val MAX_CHILDREN_GIFTS: Map<Adult, Int> = mapOf(ANNE_EMMANUEL to 1, HELENE to 1, EMMANUEL to 1, BRUNO to 1, NELLY to 1)
 
 val ASSIGNMENTS_2018 = mapOf<Adult, List<Person>>(
     DENIS to listOf(LOUIS_MARIE, CYPRIEN, AUGUSTIN),
@@ -98,6 +99,18 @@ val ASSIGNMENTS_2022 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(ANNE_EMMANUEL, JEANNE),
     NELLY to listOf(HELENE, EMMA)
 )
+val ASSIGNMENTS_2023 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(FRANCOIS, AMELIE, GREGOIRE),
+    CATHERINE to listOf(NELLY, BARNABE),
+    FRANCOIS to listOf(BRUNO, AUGUSTIN),
+    JIE to listOf(ANNE_EMMANUEL, JEANNE, PIERRE),
+    EMMANUEL to listOf(JIE, DANAELLE),
+    HELENE to listOf(LOUIS_MARIE, CYPRIEN, TIMOTHEE),
+    LOUIS_MARIE to listOf(DENIS, EMMA, NORA),
+    ANNE_EMMANUEL to listOf(EMMANUEL, CLAUDE),
+    BRUNO to listOf(HELENE, TERESA),
+    NELLY to listOf(CATHERINE, ETIENNE)
+)
 
 private data class Assignment<P : Person>(
     val giver: Adult,
@@ -105,11 +118,12 @@ private data class Assignment<P : Person>(
     // start with uniform probability, then reducing the probability for past giver/receiver pairs
     // could be tuned in various ways, like women having a higher proba of offering to girls (or the opposite), etc
     val proba: Double = Random.nextDouble() + when (receiver) {
-        in ASSIGNMENTS_2022[giver]!! -> -0.8
-        in ASSIGNMENTS_2021[giver]!! -> -0.4
-        in ASSIGNMENTS_2020[giver]!! -> -0.2
-        in ASSIGNMENTS_2019[giver]!! -> -0.1
-        in ASSIGNMENTS_2018[giver]!! -> -0.05
+        in ASSIGNMENTS_2023[giver]!! -> -0.8
+        in ASSIGNMENTS_2022[giver]!! -> -0.4
+        in ASSIGNMENTS_2021[giver]!! -> -0.2
+        in ASSIGNMENTS_2020[giver]!! -> -0.1
+        in ASSIGNMENTS_2019[giver]!! -> -0.05
+        in ASSIGNMENTS_2018[giver]!! -> -0.02
         else -> 0.0
     }
 )

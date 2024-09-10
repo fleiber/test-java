@@ -31,7 +31,7 @@ enum class Adult(override val firstName: String, val nickName: String? = null) :
 }
 
 // Not as in "child of" but more "underage", otherwise Adults should also be Children
-// Another possibility would be to have everyone in the same enum, but with a "generation" ordinal
+// Another possibility would be to have everyone in the same enum, and rely on the Family enum to extract the generations
 @Suppress("SpellCheckingInspection")
 enum class Child(override val firstName: String) : Person {
 
@@ -51,6 +51,7 @@ enum class Child(override val firstName: String) : Person {
 //    ANTOINE     ("Antoine"),
     TERESA      ("Teresa"),
     NORA        ("Nora"),
+    NATHAN      ("Nathan"),
 ;
 
     override fun toString() = firstName
@@ -64,7 +65,7 @@ enum class Family(val father: Adult, val mother: Adult, vararg children: Child) 
     FRANCOIS_JIE    (FRANCOIS, JIE,                 AMELIE, BARNABE, CLAUDE, DANAELLE, EMMA),
     MANU_HELENE     (EMMANUEL, HELENE,              JEANNE, PIERRE, TERESA),
     LM_MANUE        (LOUIS_MARIE, ANNE_EMMANUEL,    TIMOTHEE, CYPRIEN, ETIENNE, AUGUSTIN, GREGOIRE/*, JOSEPH, ANTOINE*/),
-    BRUNO_NELLY     (BRUNO, NELLY,                  NORA);
+    BRUNO_NELLY     (BRUNO, NELLY,                  NORA, NATHAN);
 
     val children = children.toSet()
 
