@@ -52,7 +52,7 @@ fun main(args: Array<String>) {
     }
 
     // Export result as CSV
-    folder.resolve("Relevés ${firstFormat!!.accountKey} ${firstFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}-${lastFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}_${ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv")
+    folder.resolve("Relevés ${firstFormat!!.accountKey} ${firstFormat.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}-${lastFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}_${ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv")
         .writeLines(listOf(AccountLine.CSV_HEADER) + mergedLines.map { it.toCsv() })
 }
 
@@ -156,7 +156,7 @@ private class PdfParsingListener : IEventListener {
             }
 
             val x = chunk.startLocation[0]
-            val detectionColumnIdx = detectionColumnStarts.binarySearch(x)
+            val detectionColumnIdx = detectionColumnStarts.binarySearch((x * 100f).roundToInt() / 100f) // for instance changed from 124.08 to 124.07998 between june and july 2024...
             if (prevChunk == null) {
                 if (detectionColumnIdx >= 0) {
                     // Only start new active line if first chunk exactly starts on one of the detection columns

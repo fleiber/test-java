@@ -38,18 +38,18 @@ fun main(args: Array<String>) {
 //        )
 //    }
 //    println(resourceLines.joinToString("\n"))
-    // 2023 format
+    // 2023-2024 format
     val resourceLines = dbResourcesFile.readLines().mapNotNull { line ->
         val split = line.split('\t')
         AccountLine(
-            LocalDate.of(split[1].parseInt(6, 10), split[1].parseInt(3, 5), split[1].parseInt(0, 2)),
+            if (split[1] == "00/00/0000") LocalDate.of(fiscalYear, 1, 1) /* revert of a previous line */ else LocalDate.of(split[1].parseInt(6, 10), split[1].parseInt(3, 5), split[1].parseInt(0, 2)),
             when (split[5]) {
                 "Virement" -> AccountLineSubCategory.VIREMENT_RECU
                 "HelloAsso" -> AccountLineSubCategory.HELLO_ASSO.also { return@mapNotNull null }
                 "SUMUP" -> AccountLineSubCategory.SUM_UP.also { return@mapNotNull null }
                 "Prélèvement" -> AccountLineSubCategory.PRELEVEMENT
                 "Chéque", "Chèque" -> AccountLineSubCategory.DEPOT_CHEQUE
-                "DEPOT ESPECES" -> AccountLineSubCategory.DEPOT_ESPECES.also { return@mapNotNull null }
+                "DEPOT ESPECES", "Espèces" -> AccountLineSubCategory.DEPOT_ESPECES.also { return@mapNotNull null }
                 else -> error(line)
             },
             Float.NaN, split[6].replace(',', '.').toFloat().also { if (it < 0f) return@mapNotNull null },

@@ -34,7 +34,7 @@ enum class AccountLineSubCategory(
 ) {
 
     // MG account
-    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",        { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" || firstLine == "VIR RECU 9325077689349" || firstLine == "VIR RECU 9328094610445" }),
+    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",        { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" }),
 
     PROJET_ORPHELINAT_BROUSSE (PROJET,           "Projet orphelinat brousse",        { firstLine, _ -> firstLine == "VIRT FAV: ORPHELINAT DE BROUSS" }),
     PROJET_BETONNIER          (PROJET,           "Travaux / investissement",         { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
@@ -42,6 +42,9 @@ enum class AccountLineSubCategory(
     CANTINE_ANTSIRABE         (PROJET,           "Cantine Antsirabe Rayon de Soleil",{ firstLine, _ -> "ECAR SOEURS DOMINICAINES" in firstLine }),
 
     // FR account
+    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",          { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full || "BFAVMGMGXXX BFV-SOCIETE GENERALE" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
+    VIREMENT_LIVRET_A         (VIREMENT_INTERNE, "Virement Livret A",                { _, full -> "\nPOUR: MADIA" in full || "\nDE: MADIA" in full }),
+
     AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                  { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
 
     HELLO_ASSO                (RESSOURCES,       "HelloAsso",                        { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: HELLOASSO" in full }),
@@ -51,19 +54,18 @@ enum class AccountLineSubCategory(
     DEPOT_CHEQUE              (RESSOURCES,       "Dépôt chèques",                    { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
     DEPOT_ESPECES             (RESSOURCES,       "Dépôt espèces",                    { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") || firstLine.startsWith("VRST GAB") }),
 
-    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",          { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full || "BFAVMGMGXXX BFV-SOCIETE GENERALE" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
-    VIREMENT_LIVRET_1         (VIREMENT_INTERNE, "Virement vers Livret A",           { _, full -> "POUR: MADIA" in full }),
-
     // Common
     FRAIS_BANCAIRES           (CAT_DEPENSE,      "Frais bancaires",                  { firstLine, _ ->
                                                                                          firstLine.startsWith("FACTURATION PROGELIANCE NET") ||  // abonnement SG FR
                                                                                          firstLine.startsWith("COTISATION JAZZ ASSOCIATIONS") || // abonnement SG FR
+                                                                                         firstLine.startsWith("COTISATION ANNUELLE CARTE") ||    // carte FR
                                                                                          firstLine.startsWith("FRAIS SUR PRLV") ||               // frais pour remise prélèvements
                                                                                          firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
                                                                                          firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
                                                                                          firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
                                                                                          firstLine == "ABONNEMENT SG CONNECT" }                  // abonnement SG MG
                               ),
+    VSI                       (CAT_DEPENSE,      "VSI",                              { _, full -> "MEDINA J" in full }),
     DEPENSE                   (CAT_DEPENSE,      "Dépense",                          { _, _ -> true }),
     ;
 
