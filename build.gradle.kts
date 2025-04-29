@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.1.10"
+    kotlin("jvm") version "2.1.20"
     id("com.github.ben-manes.versions") version "0.52.0" // find dependency updates
 }
 
@@ -13,19 +13,19 @@ repositories {
 }
 
 dependencies {
-    api("com.google.guava:guava:33.4.0-jre")
-    api("org.apache.commons:commons-csv:1.13.0")
+    api("com.google.guava:guava:33.4.8-jre")
+    api("org.apache.commons:commons-csv:1.14.0")
 
-    implementation("ch.qos.logback:logback-classic:1.5.16")
-    implementation("com.github.luben:zstd-jni:1.5.6-9")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("com.github.luben:zstd-jni:1.5.7-2")
 
-    implementation("com.itextpdf:kernel:9.0.0")
-    implementation("com.itextpdf:io:9.0.0")
-    implementation("com.itextpdf:layout:9.0.0")
-    implementation("com.itextpdf:bouncy-castle-adapter:9.0.0")
+    implementation("com.itextpdf:kernel:9.1.0")
+    implementation("com.itextpdf:io:9.1.0")
+    implementation("com.itextpdf:layout:9.1.0")
+    implementation("com.itextpdf:bouncy-castle-adapter:9.1.0")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.4")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.4")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.12.2")
 }
 
 tasks.withType<KotlinCompile> {

@@ -32,6 +32,7 @@ fun main(args: Array<String>) {
     println("Accounts = \n\t${accounts.values.joinToString("\n\t")}")
     println("Parties = \n\t${parties.values.joinToString("\n\t")}")
     println("Categories = \n\t${categories.values.joinToString("\n\t")}")
+    println("Account,Date,Party,Amount,Category,SubCategory,Comment")
 
     saxParser.parse(filePath.inputStream(), object : DefaultHandler() {
         var breakdownComments = mutableMapOf<Int, String>()
