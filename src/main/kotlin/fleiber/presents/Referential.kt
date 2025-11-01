@@ -50,6 +50,7 @@ enum class Child(override val firstName: String) : Person {
 //    JOSEPH      ("Joseph"),
 //    ANTOINE     ("Antoine"),
     TERESA      ("Teresa"),
+    MARIE      ("Marie"),
     NORA        ("Nora"),
     NATHAN      ("Nathan"),
 ;
@@ -63,7 +64,7 @@ enum class Family(val father: Adult, val mother: Adult, vararg children: Child) 
 
     PAPE_MAME       (DENIS, CATHERINE),
     FRANCOIS_JIE    (FRANCOIS, JIE,                 AMELIE, BARNABE, CLAUDE, DANAELLE, EMMA),
-    MANU_HELENE     (EMMANUEL, HELENE,              JEANNE, PIERRE, TERESA),
+    MANU_HELENE     (EMMANUEL, HELENE,              JEANNE, PIERRE, TERESA, MARIE),
     LM_MANUE        (LOUIS_MARIE, ANNE_EMMANUEL,    TIMOTHEE, CYPRIEN, ETIENNE, AUGUSTIN, GREGOIRE/*, JOSEPH, ANTOINE*/),
     BRUNO_NELLY     (BRUNO, NELLY,                  NORA, NATHAN);
 

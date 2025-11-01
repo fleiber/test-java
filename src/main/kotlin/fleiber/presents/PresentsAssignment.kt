@@ -37,9 +37,9 @@ fun main() {
 
 
 // To improve fairness, based on the number of children and godchildren
-private val MAX_CHILDREN_GIFTS: Map<Adult, Int> = mapOf(ANNE_EMMANUEL to 1, HELENE to 1, EMMANUEL to 1, BRUNO to 1, NELLY to 1)
+private val MAX_CHILDREN_GIFTS: Map<Adult, Int> = mapOf(EMMANUEL to 1, BRUNO to 1, NELLY to 1)
 
-val ASSIGNMENTS_2018 = mapOf<Adult, List<Person>>(
+val ASSIGNMENTS_2018 = mapOf(
     DENIS to listOf(LOUIS_MARIE, CYPRIEN, AUGUSTIN),
     CATHERINE to listOf(EMMANUEL, CLAUDE /*JOSEPH*/),
     FRANCOIS to listOf(HELENE, PIERRE/*, ANTOINE*/),
@@ -51,7 +51,7 @@ val ASSIGNMENTS_2018 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(FRANCOIS),
     NELLY to listOf(ANNE_EMMANUEL)
 )
-val ASSIGNMENTS_2019 = mapOf<Adult, List<Person>>(
+val ASSIGNMENTS_2019 = mapOf(
     DENIS to listOf(EMMANUEL, BARNABE, GREGOIRE),
     CATHERINE to listOf(ANNE_EMMANUEL, AMELIE, TIMOTHEE),
     FRANCOIS to listOf(BRUNO, CYPRIEN, AUGUSTIN),
@@ -63,7 +63,7 @@ val ASSIGNMENTS_2019 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(DENIS),
     NELLY to listOf(FRANCOIS)
 )
-val ASSIGNMENTS_2020 = mapOf<Adult, List<Person>>(
+val ASSIGNMENTS_2020 = mapOf(
     DENIS to listOf(BRUNO, CLAUDE, JEANNE),
     CATHERINE to listOf(JIE, BARNABE, EMMA),
     FRANCOIS to listOf(NELLY, TIMOTHEE, GREGOIRE),
@@ -75,7 +75,7 @@ val ASSIGNMENTS_2020 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(HELENE),
     NELLY to listOf(LOUIS_MARIE)
 )
-val ASSIGNMENTS_2021 = mapOf<Adult, List<Person>>(
+val ASSIGNMENTS_2021 = mapOf(
     DENIS to listOf(HELENE, EMMA, TERESA),
     CATHERINE to listOf(LOUIS_MARIE, AMELIE, GREGOIRE),
     FRANCOIS to listOf(ANNE_EMMANUEL, ETIENNE),
@@ -87,7 +87,7 @@ val ASSIGNMENTS_2021 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(JIE, PIERRE),
     NELLY to listOf(DENIS, CLAUDE)
 )
-val ASSIGNMENTS_2022 = mapOf<Adult, List<Person>>(
+val ASSIGNMENTS_2022 = mapOf(
     DENIS to listOf(BRUNO, PIERRE, CYPRIEN),
     CATHERINE to listOf(EMMANUEL, ETIENNE, NORA),
     FRANCOIS to listOf(LOUIS_MARIE, TERESA),
@@ -99,7 +99,7 @@ val ASSIGNMENTS_2022 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(ANNE_EMMANUEL, JEANNE),
     NELLY to listOf(HELENE, EMMA)
 )
-val ASSIGNMENTS_2023 = mapOf<Adult, List<Person>>(
+val ASSIGNMENTS_2023 = mapOf(
     DENIS to listOf(FRANCOIS, AMELIE, GREGOIRE),
     CATHERINE to listOf(NELLY, BARNABE),
     FRANCOIS to listOf(BRUNO, AUGUSTIN),
@@ -111,6 +111,18 @@ val ASSIGNMENTS_2023 = mapOf<Adult, List<Person>>(
     BRUNO to listOf(HELENE, TERESA),
     NELLY to listOf(CATHERINE, ETIENNE)
 )
+val ASSIGNMENTS_2024 = mapOf<Adult, List<Person>>(
+    DENIS to listOf(NELLY, ETIENNE, AUGUSTIN),
+    CATHERINE to listOf(BRUNO, DANAELLE, TIMOTHEE),
+    FRANCOIS to listOf(HELENE, CYPRIEN, GREGOIRE),
+    JIE to listOf(CATHERINE, TERESA, NORA),
+    EMMANUEL to listOf(DENIS, CLAUDE),
+    HELENE to listOf(ANNE_EMMANUEL, EMMA),
+    LOUIS_MARIE to listOf(JIE, AMELIE, PIERRE),
+    ANNE_EMMANUEL to listOf(FRANCOIS, NATHAN),
+    BRUNO to listOf(LOUIS_MARIE, BARNABE),
+    NELLY to listOf(EMMANUEL, JEANNE)
+)
 
 private data class Assignment<P : Person>(
     val giver: Adult,
@@ -118,12 +130,13 @@ private data class Assignment<P : Person>(
     // start with uniform probability, then reducing the probability for past giver/receiver pairs
     // could be tuned in various ways, like women having a higher proba of offering to girls (or the opposite), etc
     val proba: Double = Random.nextDouble() + when (receiver) {
-        in ASSIGNMENTS_2023[giver]!! -> -0.8
-        in ASSIGNMENTS_2022[giver]!! -> -0.4
-        in ASSIGNMENTS_2021[giver]!! -> -0.2
-        in ASSIGNMENTS_2020[giver]!! -> -0.1
-        in ASSIGNMENTS_2019[giver]!! -> -0.05
-        in ASSIGNMENTS_2018[giver]!! -> -0.02
+        in ASSIGNMENTS_2024[giver]!! -> -1.00
+        in ASSIGNMENTS_2023[giver]!! -> -0.50
+        in ASSIGNMENTS_2022[giver]!! -> -0.25
+        in ASSIGNMENTS_2021[giver]!! -> -0.12
+        in ASSIGNMENTS_2020[giver]!! -> -0.06
+        in ASSIGNMENTS_2019[giver]!! -> -0.03
+        in ASSIGNMENTS_2018[giver]!! -> -0.01
         else -> 0.0
     }
 )
