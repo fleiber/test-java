@@ -40,19 +40,21 @@ enum class AccountLineSubCategory(
     PROJET_BETONNIER          (PROJET,           "Travaux / investissement",         { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
     PROJET_FIANAR             (PROJET,           "Projet Fianarantsoa",              { firstLine, _ -> "AIC FIANARANTSOA" in firstLine }),
     CANTINE_ANTSIRABE         (PROJET,           "Cantine Antsirabe Rayon de Soleil",{ firstLine, _ -> "ECAR SOEURS DOMINICAINES" in firstLine }),
+    REPRESENTATION_MADIA      (PROJET,           "Représentation Madia",             { firstLine, _ -> "LANDRY" in firstLine }),
 
     // FR account
     VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",          { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full || "BFAVMGMGXXX BFV-SOCIETE GENERALE" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
     VIREMENT_LIVRET_A         (VIREMENT_INTERNE, "Virement Livret A",                { _, full -> "\nPOUR: MADIA" in full || "\nDE: MADIA" in full }),
 
-    AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                  { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: MARCHE DE LAVENT" in full }),
+    AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                  { firstLine, full -> firstLine.startsWith("VIR RECU") && "MARCHE DE LAVENT" in full }),
 
-    HELLO_ASSO                (RESSOURCES,       "HelloAsso",                        { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: HELLOASSO" in full }),
-    SUM_UP                    (RESSOURCES,       "SumUp",                            { firstLine, full -> firstLine.startsWith("VIR RECU") && "MOTIF: SUMUP" in full }),
+    HELLO_ASSO                (RESSOURCES,       "HelloAsso",                        { firstLine, full -> firstLine.startsWith("VIR RECU") && "HELLOASSO" in full }),
+    SUM_UP                    (RESSOURCES,       "SumUp",                            { firstLine, full -> (firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE")) && "SUMUP" in full }),
     VIREMENT_RECU             (RESSOURCES,       "Virement reçu",                    { firstLine, _ -> firstLine.startsWith("VIR RECU") || firstLine.startsWith("VIR INST RE") }),
     PRELEVEMENT               (RESSOURCES,       "Prélèvement",                      { firstLine, _ -> "PRLV EUROPEEN EMIS" in firstLine }),
     DEPOT_CHEQUE              (RESSOURCES,       "Dépôt chèques",                    { firstLine, _ -> firstLine.startsWith("REMISE CHEQUE") }),
     DEPOT_ESPECES             (RESSOURCES,       "Dépôt espèces",                    { firstLine, _ -> firstLine.startsWith("VERSEMENT EXPRESS") || firstLine.startsWith("VRST GAB") }),
+    SUBVENTIONS               (RESSOURCES,       "Subventions",                      { firstLine, _ -> "DE: COMITE RELATIONS" in firstLine || "FONDATION DE FRANCE" in firstLine }),
 
     // Common
     FRAIS_BANCAIRES           (CAT_DEPENSE,      "Frais bancaires",                  { firstLine, _ ->
@@ -63,9 +65,11 @@ enum class AccountLineSubCategory(
                                                                                          firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
                                                                                          firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
                                                                                          firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
-                                                                                         firstLine == "ABONNEMENT SG CONNECT" }                  // abonnement SG MG
+                                                                                         firstLine == "ABONNEMENT SG CONNECT" }                          // abonnement SG MG
                               ),
     VSI                       (CAT_DEPENSE,      "VSI",                              { _, full -> "MEDINA J" in full }),
+    MISSION                   (CAT_DEPENSE,      "Frais missions",                   { _, full -> "FRAIS DE MISSION" in full }),
+    ACHATS_ET_FRAIS_MARCHES   (CAT_DEPENSE,      "Achats et frais marchés",          { _, full -> "ARTISANAT" in full }),
     DEPENSE                   (CAT_DEPENSE,      "Dépense",                          { _, _ -> true }),
     ;
 
@@ -85,7 +89,7 @@ data class AccountLine(
 ) {
 
     val category get() = subCategory.category
-    val fiscalYear get() = if (subCategory === AccountLineSubCategory.DEPOT_CHEQUE && date.month === Month.JANUARY && date.dayOfMonth < 20) date.year - 1 else date.year
+    val fiscalYear get() = if ((subCategory === AccountLineSubCategory.DEPOT_CHEQUE || subCategory === AccountLineSubCategory.DEPOT_ESPECES) && date.month === Month.JANUARY && date.dayOfMonth < 20) date.year - 1 else date.year
     val amount get() = if (credit.isNaN()) -debit else credit
 
     fun toCsv() = "$fiscalYear,${if (fiscalYear < date.year) 12 else date.monthValue},$date,${category.description},${subCategory.description},${debit.formatCsv()},${credit.formatCsv()},${(if (credit.isNaN()) -debit else credit).formatCsv()},\"$detailsText\""
