@@ -21,7 +21,6 @@ enum class AccountLineCategory(
     RESSOURCES          ("Ressources"),
     AUTRE_RESSOURCE     ("Autre ressource"),
     DEPENSE             ("Dépense"),
-    ;
 }
 
 
@@ -34,7 +33,7 @@ enum class AccountLineSubCategory(
 ) {
 
     // MG account
-    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",        { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" }),
+    VIREMENT_EUR_MGA          (VIREMENT_INTERNE, "Virement depuis compte FR",        { firstLine, _ -> firstLine == "VIRT RECU DE : MADIA" || firstLine == "VIRT CONNECT RECU DE : ASSOCIATION MADIA" }),
 
     PROJET_ORPHELINAT_BROUSSE (PROJET,           "Projet orphelinat brousse",        { firstLine, _ -> firstLine == "VIRT FAV: ORPHELINAT DE BROUSS" }),
     PROJET_BETONNIER          (PROJET,           "Travaux / investissement",         { firstLine, _ -> firstLine == "VIRT FAV: RAZAFINDRAKOTO RENE" || firstLine == "VIRT FAV : ENTREPRISE INDIVIDUELLE RANAIV" || "RANAIVOARIVELO HERIZO" in firstLine }),
@@ -43,7 +42,7 @@ enum class AccountLineSubCategory(
     REPRESENTATION_MADIA      (PROJET,           "Représentation Madia",             { firstLine, _ -> "LANDRY" in firstLine }),
 
     // FR account
-    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",          { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full || "BFAVMGMGXXX BFV-SOCIETE GENERALE" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
+    VIREMENT_MG               (VIREMENT_INTERNE, "Virement vers compte MG",          { firstLine, full -> if ("VIR INTL EMIS" in firstLine) { check("BFV-STE.GENERALE/TANANAR" in full || "BFAVMGMGXXX" in full) { "Destinataire virement inconnu: $full" }; true } else false }),
     VIREMENT_LIVRET_A         (VIREMENT_INTERNE, "Virement Livret A",                { _, full -> "\nPOUR: MADIA" in full || "\nDE: MADIA" in full }),
 
     AUTRE_RESOURCE            (CAT_RESSOURCE,    "Autre ressource",                  { firstLine, full -> firstLine.startsWith("VIR RECU") && "MARCHE DE LAVENT" in full }),
@@ -65,7 +64,8 @@ enum class AccountLineSubCategory(
                                                                                          firstLine.startsWith("FRAIS VIR INTL") ||               // frais pour virement FR -> MG
                                                                                          firstLine.startsWith("COMMISSION") ||                   // frais virement MG ?
                                                                                          firstLine.startsWith("AGIOS DU") ||                     // frais compte SG MG ?
-                                                                                         firstLine == "ABONNEMENT SG CONNECT" }                          // abonnement SG MG
+                                                                                         firstLine == "ABONNEMENT SG CONNECT" ||                 // abonnement SG MG
+                                                                                         firstLine == "ABONNEMENT BRED CONNECT" }                // abonnement BRED MG
                               ),
     VSI                       (CAT_DEPENSE,      "VSI",                              { _, full -> "MEDINA J" in full }),
     MISSION                   (CAT_DEPENSE,      "Frais missions",                   { _, full -> "FRAIS DE MISSION" in full }),
@@ -76,7 +76,7 @@ enum class AccountLineSubCategory(
 
     companion object {
         fun fromBankStatement(firstLine: String, full: String): AccountLineSubCategory = entries.first { it.predicate(firstLine, full) }
-        fun fromDescription(description: String): AccountLineSubCategory = entries.firstOrNull { it.description == description } ?: error("Could not find AccountLineType for $description")
+        fun fromDescription(description: String): AccountLineSubCategory = entries.firstOrNull { it.description == description } ?: error("Could not find AccountLineSubCategory for $description")
     }
 }
 
@@ -119,7 +119,6 @@ data class AccountLine(
         private fun String.parseFloat() = if (isEmpty()) Float.NaN else toFloat()
         private fun Float.formatCsv() = if (isNaN()) "" else toString()
 
-        @Suppress("SpellCheckingInspection")
         const val CSV_HEADER = "Année fiscale,Mois,Date,Catégorie,Sous-catégorie,Débit,Crédit,Signed,Détails"
         private val AMOUNT_FORMAT = DecimalFormat("###,###.00")
 

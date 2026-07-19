@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
     if (args.size != 1) error("Usage: MergeAccountStatementPdfs path_to_folder_with_pdfs")
 
     val folder = Path.of(args[0])
-    val pdfFiles = folder.listDirectoryEntries("*.pdf").map { it to StatementPdfFormat.create(it.name) }.sortedBy { it.second.date }
+    val pdfFiles = folder.listDirectoryEntries("[Er]*.pdf" /* "releve*" or "ETX_*" */).map { it to StatementPdfFormat.create(it.name) }.sortedBy { it.second.date }
     println("Will parse ${pdfFiles.size} PDFs from $folder")
 
     var firstFormat: StatementPdfFormat? = null
@@ -52,7 +52,11 @@ fun main(args: Array<String>) {
     }
 
     // Export result as CSV
-    folder.resolve("Relevés ${firstFormat!!.accountKey} ${firstFormat.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}-${lastFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}_${ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv")
+    folder.resolve(
+        "Relevés ${firstFormat!!.accountKey} " +
+                "${firstFormat.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}" +
+                "-${lastFormat!!.date.format(DateTimeFormatter.ofPattern("yyyyMM"))}" +
+                "_${ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}.csv")
         .writeLines(listOf(AccountLine.CSV_HEADER) + mergedLines.map { it.toCsv() })
 }
 
@@ -92,19 +96,22 @@ private class StatementPdfFormat(
 
         fun create(fileName: String): StatementPdfFormat =
             sgFrFileNameRegexp.matchEntire(fileName)?.let {
-                StatementPdfFormat("FR",
+                StatementPdfFormat(
+                    "FR",
                     LocalDate.parse(it.groupValues[1], dateFormat),
                     floatArrayOf(31.2f, 124.08f), floatArrayOf(400.0f, 500.0f),
                     dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 1, debitColumn = 2, creditColumn = 3
                 )
             } ?: sgFr2FileNameRegexp.matchEntire(fileName)?.let {
-                StatementPdfFormat("FR",
+                StatementPdfFormat(
+                    "FR",
                     LocalDate.parse(it.groupValues[1], dateFormat2),
                     floatArrayOf(31.2f, 124.08f), floatArrayOf(400.0f, 500.0f),
                     dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 1, debitColumn = 2, creditColumn = 3
                 )
             } ?: sgMgFileNameRegexp.matchEntire(fileName)?.let {
-                StatementPdfFormat("MG",
+                StatementPdfFormat(
+                    "MG",
                     LocalDate.parse(it.groupValues[1], dateFormat),
                     floatArrayOf(37.5f, 73.02f, 90.03f), floatArrayOf(354.81f, 390.0f, 490.0f),
                     dateColumn = 0, detailsColumn = 1, detailsFollowingLinesColumn = 2, debitColumn = 4, creditColumn = 5
@@ -156,7 +163,7 @@ private class PdfParsingListener : IEventListener {
             }
 
             val x = chunk.startLocation[0]
-            val detectionColumnIdx = detectionColumnStarts.binarySearch((x * 100f).roundToInt() / 100f) // for instance changed from 124.08 to 124.07998 between june and july 2024...
+            val detectionColumnIdx = detectionColumnStarts.binarySearch((x * 100f).roundToInt() / 100f) // for instance, changed from 124.08 to 124.07998 between june and july 2024...
             if (prevChunk == null) {
                 if (detectionColumnIdx >= 0) {
                     // Only start new active line if first chunk exactly starts on one of the detection columns
@@ -167,7 +174,7 @@ private class PdfParsingListener : IEventListener {
                 val columnIdx = when {
                     detectionColumnIdx >= 0 -> detectionColumnIdx // start new detectable column
                     x < otherColumnStarts[0] -> prevColumnIdx     // continue prev detectable column
-                    else -> otherColumnStarts.binarySearch(x).let { if (it >= 0) it else -it - 2 } + detectionColumnStarts.size // detect other column
+                    else -> otherColumnStarts.binarySearch(x).let { if (it >= 0) it else -it - 2 } + detectionColumnStarts.size // detect another column
                 }
                 if (columnIdx != prevColumnIdx) {
                     // Finish prev column if starting a new one
@@ -175,8 +182,8 @@ private class PdfParsingListener : IEventListener {
                     sb.setLength(0)
                     prevColumnIdx = columnIdx
                 } else if (chunk.isAtWordBoundary(prevChunk) &&
-                          (chunk.text.isEmpty() || chunk.text[0] != ' ') &&
-                          (prevChunk.text.isEmpty() || prevChunk.text.last() != ' ')
+                    (chunk.text.isEmpty() || chunk.text[0] != ' ') &&
+                    (prevChunk.text.isEmpty() || prevChunk.text.last() != ' ')
                 ) {
                     // Add a space if chunk is far enough from previous chunk
                     sb.append(' ')
@@ -199,11 +206,11 @@ private class TextChunk(
 
     /** The orientation as a scalar for quick sorting. */
     private val orientationMagnitude: Int
-    /** Perpendicular distance to the orientation unit vector (i.e. the Y position in an unrotated coordinate system). */
+    /** Perpendicular distance to the orientation unit vector (i.e., the Y position in an unrotated coordinate system). */
     private val distPerpendicular: Float
-    /** Distance of the start of the chunk parallel to the orientation unit vector (i.e. the X position in an unrotated coordinate system). */
+    /** Distance of the start of the chunk parallel to the orientation unit vector (i.e., the X position in an unrotated coordinate system). */
     private val distParallelStart: Float
-    /** Distance of the end of the chunk parallel to the orientation unit vector (i.e. the X position in an unrotated coordinate system). */
+    /** Distance of the end of the chunk parallel to the orientation unit vector (i.e., the X position in an unrotated coordinate system). */
     private val distParallelEnd: Float
 
     init {
@@ -211,7 +218,7 @@ private class TextChunk(
         this.orientationMagnitude = (atan2(orientationVector[1], orientationVector[0]) * 1000).roundToInt()
 
         // see http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
-        // the two vectors we are crossing are in the same plane, so the result will be purely
+        // the two vectors we are crossing are on the same plane, so the result will be purely
         // in the z-axis (out of plane) direction, so we just take the I3 component of the result
         this.distPerpendicular = startLocation[0] * orientationVector[1] - startLocation[1] * orientationVector[0]
         this.distParallelStart = orientationVector.dot(startLocation)

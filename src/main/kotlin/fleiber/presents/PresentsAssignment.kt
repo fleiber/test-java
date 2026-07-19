@@ -15,7 +15,7 @@ fun main() {
     println("\n===================================")
     println("Adults:\n")
     for (adult in Adult.entries) {
-        println(adult.initials + ". " + adult.firstName + if (adult.nickName != null) " [" + adult.nickName + "]" else "")
+        println(adult.initials + ". " + adult.firstName + (if (adult.nickName == null) "" else " [" + adult.nickName + "]"))
     }
     println("\n===================================")
     println("Families:\n")
